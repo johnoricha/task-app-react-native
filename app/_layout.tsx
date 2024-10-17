@@ -1,37 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import {router, Stack, useLocalSearchParams} from "expo-router";
+import {Text, TouchableOpacity} from "react-native"
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {RootSiblingParent} from "react-native-root-siblings";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+    const {isEditMode} = useLocalSearchParams()
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    console.log('isEditMode: ', isEditMode)
 
-  if (!loaded) {
-    return null;
-  }
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
-  );
+    return (
+        <QueryClientProvider client={queryClient}>
+            <RootSiblingParent>
+                <Stack>
+                    <Stack.Screen name="index" options={{
+                        headerStyle: {
+                            backgroundColor: '#BBF7D0'
+                        },
+                        headerTitle: () => <Text className={'text-[22px]'}>Task Manager</Text>,
+                    }}/>
+                    <Stack.Screen name="add-edit-task" options={{
+                        headerShown: true,
+                        headerStyle: {
+                            backgroundColor: '#BBF7D0'
+                        },
+                        headerTitle: () => <Text className={'text-[20px]'}>Add Task</Text>,
+                        headerLeft: () => <TouchableOpacity onPress={
+                            () => {
+                                router.back()
+                            }
+                        }><Text>Back</Text></TouchableOpacity>
+                    }}
+                    />
+                </Stack>
+            </RootSiblingParent>
+        </QueryClientProvider>
+    );
 }
